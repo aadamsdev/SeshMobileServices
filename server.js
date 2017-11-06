@@ -5,6 +5,8 @@ const cheerio = require('cheerio');
 const app = express();
 const MongoClient = require('mongodb').MongoClient;
 
+import ProductStatus from './constants.js'
+
 const baseUrl = 'http://teamsesh.bigcartel.com'
 const productUrl = baseUrl + '/products'
 const dbUrl = 'mongodb://localhost:27017/SeshMobileDatabase'
@@ -110,10 +112,15 @@ function compareProducts(previousProducts, currentProducts) {
     
 }
 
-function compareProduct(previousProduct, currentProduct) {
-    if (previousProduct.productName && currentProduct &&  previousProduct.productName === currentProduct.productName) {
-        if (previousProduct.)
+function isNewProduct(previousProducts, productToCheck) {
+    for (const product in previousProducts) {
+        if (product.productName && productToCheck.productName && product.productName === productToCheck.productName) {
+            if (product.price && productToCheck.price && product.price === productToCheck.price) {
+                return false;
+            }
+        }
     }
+    return true;
 }
 
 function getSavedProductList() {
