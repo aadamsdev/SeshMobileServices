@@ -1,13 +1,66 @@
-var express = require('express');
-var fs = require('fs');
-var request = require('request');
-var cheerio = require('cheerio');
-var app = express();
+const express = require('express');
+const fs = require('fs');
+const request = require('request');
+const cheerio = require('cheerio');
+const app = express();
+const MongoClient = require('mongodb').MongoClient;
 
-const baseUrl = 'http://teamsesh.bigcartel.com';
-const productUrl = baseUrl + '/products';
+const baseUrl = 'http://teamsesh.bigcartel.com'
+const productUrl = baseUrl + '/products'
+const dbUrl = 'mongodb://localhost:27017/SeshMobileDatabase'
+const dbCollection = 'products'
 
 
+MongoClient.connect(dbUrl, function(err, db) {
+    if (err) throw err;    
+
+    
+    const scrapeSuccessCallback = (scrapedProducts) => {
+        db.collection(dbCollection).insertMany(scrapedProducts, function(err, res) {
+            if (err) throw err;
+    
+            console.log('inserted ' + scrapedProducts.length + ' products');
+            db.close();
+        });
+    }
+    const scrapedProducts = scrapeProducts(scrapeSuccessCallback);   
+});
+
+function scrapeProducts(scrapeSuccessCallback) {
+    request(productUrl, function (error, response, html) {
+        if (!error) {
+            const $ = cheerio.load(html)
+            
+            $('.products_list').filter(function () {
+                const data = $(this)
+    
+                const parsedProducts = []
+    
+                const products = data.children()
+                for (let index = 0; index < products.length; ++index) {
+                    const product = products[index]
+                    
+                    if (product.attribs && product.attribs.class ) {
+                        if (product.attribs.class === 'product sold') {
+                            const parsedProduct = parseProducts(product, true);
+                            if (parsedProduct) {
+                                parsedProducts.push(parsedProduct)
+                            }
+                        } else if (product.attribs.class === 'product') {
+                            const parsedProduct = parseProducts(product, false)
+                            if (parsedProduct) {
+                                parsedProducts.push(parsedProduct)
+                            }
+                        }
+                    }                                           
+                }    
+                console.log(parsedProducts)
+                scrapeSuccessCallback(parsedProducts)
+            })
+            
+        }
+    })        
+}
 
 function parseProducts(product, soldOut) {
     for (const element of product.children) {
@@ -44,43 +97,6 @@ function parseProducts(product, soldOut) {
         }
     }
 }
-
-
-request(productUrl, function (error, response, html) {
-    if (!error) {
-        var $ = cheerio.load(html)
-        
-        $('.products_list').filter(function () {
-            const data = $(this)
-
-            const parsedProducts = []
-
-            const products = data.children()
-            for (let index = 0; index < products.length; ++index) {
-                const product = products[index]
-                
-                if (product.attribs && product.attribs.class ) {
-                    if (product.attribs.class === 'product sold') {
-                        const parsedProduct = parseProducts(product, true);
-                        if (parsedProduct) {
-                            parsedProducts.push(parsedProduct)
-                        }
-                    } else if (product.attribs.class === 'product') {
-                        const parsedProduct = parseProducts(product, false)
-                        if (parsedProduct) {
-                            parsedProducts.push(parsedProduct)
-                        }
-                    }
-                }                                           
-                // console.log(products[index])
-            }
-
-            console.log(parsedProducts)
-        })
-
-    }
-})
-
 
 app.listen('8081')
 
