@@ -13,15 +13,22 @@ const dbCollection = 'products'
 
 MongoClient.connect(dbUrl, function(err, db) {
     if (err) throw err;    
-
     
     const scrapeSuccessCallback = (scrapedProducts) => {
-        db.collection(dbCollection).insertMany(scrapedProducts, function(err, res) {
-            if (err) throw err;
+        
+        const previousProducts = getSavedProductList()
+        
+        if (compareProducts(previousProducts, scrapedProducts)) {
+
+        } 
+
+
+        // db.collection(dbCollection).insertMany(scrapedProducts, function(err, res) {
+        //     if (err) throw err;
     
-            console.log('inserted ' + scrapedProducts.length + ' products');
-            db.close();
-        });
+        //     console.log('inserted ' + scrapedProducts.length + ' products');
+        //     db.close();
+        // });
     }
     const scrapedProducts = scrapeProducts(scrapeSuccessCallback);   
 });
@@ -96,6 +103,28 @@ function parseProducts(product, soldOut) {
             }            
         }
     }
+}
+
+function compareProducts(previousProducts, currentProducts) {
+    let comparisonMap = {}
+    
+}
+
+function compareProduct(previousProduct, currentProduct) {
+    if (previousProduct.productName && currentProduct &&  previousProduct.productName === currentProduct.productName) {
+        if (previousProduct.)
+    }
+}
+
+function getSavedProductList() {
+    MongoClient.connect(dbUrl, function (err, db) {
+        if (err) throw err;
+        db.collection('products').find({}).toArray(function (err, result) {
+            if (err) throw err;            
+            db.close();
+            return result;
+        });
+    });
 }
 
 app.listen('8081')
