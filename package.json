@@ -1,15 +1,16 @@
 {
-  "name": "sesh-mobile-scraper",
+  "name": "sesh-mobile-service",
   "version": "0.0.1",
-  "description": "Scrape le web.",
-  "main": "server.js",
+  "description": "Scrape teamsesh.bigcartel.com for products. Provide REST API for retrieving data.",
+  "main": "index.js",
   "author": "aadamsdev",
   "dependencies": {
     "express": "latest",
     "request": "latest",
     "cheerio": "latest",
     "mongodb": "latest",
-    "node-gcm": "latest"
+    "node-gcm": "latest",
+    "restify" : "latest"
   },
   "devDependencies": {
     "eslint-config-google": "^0.9.1"

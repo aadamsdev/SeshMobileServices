@@ -41,6 +41,7 @@ MongoClient.connect(config.db.uri, function (err, db) {
 
         getSavedProductList(db, savedProductsCallback)
         db.close()
+        return 
     }
     const scrapedProducts = scrapeProducts(scrapeSuccessCallback);
 });
