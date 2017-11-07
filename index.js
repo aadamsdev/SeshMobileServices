@@ -1,47 +1,24 @@
 'use strict'
 
-/**
- * Module Dependencies
- */
-const config  = require('./config'),
-      restify = require('restify'),
-      mongodb = require('mongodb').MongoClient
+const express = require('express')
+const MongoClient = require('mongodb').MongoClient
+const bodyParser = require('body-parser')
+const config = require('./config')
 
-/**
- * Initialize Server
- */
-const server = restify.createServer({
-    name    : config.name,
-    version : config.version
-})
+const app = express();
+const port = 8000;
 
-/**
- * Bundled Plugins (http://restify.com/#bundled-plugins)
- */
-server.use(restify.plugins.jsonBodyParser({ mapParams: true }))
-server.use(restify.plugins.acceptParser(server.acceptable))
-server.use(restify.plugins.queryParser({ mapParams: true }))
-server.use(restify.plugins.fullResponse())
+app.use(bodyParser.urlencoded({ extended: true }));
 
-/**
- * Lift Server, Connect to DB & Require Route File
- */
-server.listen(config.port, () => {
-    // establish connection to mongodb atlas
-    mongodb.connect(config.db.uri, (err, db) => {
+MongoClient.connect(config.db.uri, (err, database) => {
+    if (err) {
+        console.log('An error occurred while attempting to connect to MongoDB', err)
+        process.exit(1)
+    }
 
-        if (err) {
-            console.log('An error occurred while attempting to connect to MongoDB', err)
-            process.exit(1)
-        }
+    require('./routes/product')(app, database);
 
-        console.log(
-            '%s v%s ready to accept connections on port %s in %s environment.',
-            server.name,
-            config.version,
-            config.port,
-            config.env
-        )
-        require('./routes')({ db, server })
-    })
+    app.listen(port, () => {
+        console.log('We are live on ' + port);
+    });
 })
