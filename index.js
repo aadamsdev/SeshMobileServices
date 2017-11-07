@@ -18,16 +18,15 @@ const server = restify.createServer({
 /**
  * Bundled Plugins (http://restify.com/#bundled-plugins)
  */
-server.use(restify.jsonBodyParser({ mapParams: true }))
-server.use(restify.acceptParser(server.acceptable))
-server.use(restify.queryParser({ mapParams: true }))
-server.use(restify.fullResponse())
+server.use(restify.plugins.jsonBodyParser({ mapParams: true }))
+server.use(restify.plugins.acceptParser(server.acceptable))
+server.use(restify.plugins.queryParser({ mapParams: true }))
+server.use(restify.plugins.fullResponse())
 
 /**
  * Lift Server, Connect to DB & Require Route File
  */
 server.listen(config.port, () => {
-
     // establish connection to mongodb atlas
     mongodb.connect(config.db.uri, (err, db) => {
 
@@ -43,9 +42,6 @@ server.listen(config.port, () => {
             config.port,
             config.env
         )
-
         require('./routes')({ db, server })
-
     })
-
 })
