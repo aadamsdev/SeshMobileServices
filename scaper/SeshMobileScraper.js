@@ -6,12 +6,9 @@ const app = express();
 const MongoClient = require('mongodb').MongoClient;
 const gcm = require('node-gcm');
 
-const baseUrl = 'http://teamsesh.bigcartel.com'
-const productUrl = baseUrl + '/products'
-const dbUrl = 'mongodb://localhost:27017/SeshMobileDatabase'
-const dbCollection = 'products'
+const config = require('../config')
 
-MongoClient.connect(dbUrl, function (err, db) {
+MongoClient.connect(config.db.uri, function (err, db) {
     if (err) throw err;
 
     const scrapeSuccessCallback = (scrapedProducts) => {
@@ -49,37 +46,36 @@ MongoClient.connect(dbUrl, function (err, db) {
 });
 
 function scrapeProducts(scrapeSuccessCallback) {
-    request(productUrl, function (error, response, html) {
-        if (!error) {
-            const $ = cheerio.load(html)
-            $('.products_list').filter(function () {
-                const data = $(this)
+    request(config.scraperProductUrl, function (error, response, html) {
+        if (error) throw error
 
-                const parsedProducts = []
+        const $ = cheerio.load(html)
+        $('.products_list').filter(function () {
+            const data = $(this)
 
-                const products = data.children()
-                for (let index = 0; index < products.length; ++index) {
-                    const product = products[index]
+            const parsedProducts = []
 
-                    if (product.attribs && product.attribs.class) {
-                        if (product.attribs.class === 'product sold') {
-                            const parsedProduct = parseProducts(product, true);
-                            if (parsedProduct) {
-                                parsedProducts.push(parsedProduct)
-                            }
-                        } else if (product.attribs.class === 'product') {
-                            const parsedProduct = parseProducts(product, false)
-                            if (parsedProduct) {
-                                parsedProducts.push(parsedProduct)
-                            }
+            const products = data.children()
+            for (let index = 0; index < products.length; ++index) {
+                const product = products[index]
+
+                if (product.attribs && product.attribs.class) {
+                    if (product.attribs.class === 'product sold') {
+                        const parsedProduct = parseProducts(product, true);
+                        if (parsedProduct) {
+                            parsedProducts.push(parsedProduct)
+                        }
+                    } else if (product.attribs.class === 'product') {
+                        const parsedProduct = parseProducts(product, false)
+                        if (parsedProduct) {
+                            parsedProducts.push(parsedProduct)
                         }
                     }
                 }
-                console.log(parsedProducts)
-                scrapeSuccessCallback(parsedProducts)
-            })
-
-        }
+            }
+            console.log(parsedProducts)
+            scrapeSuccessCallback(parsedProducts)
+        })
     })
 }
 
@@ -89,7 +85,7 @@ function parseProducts(product, soldOut) {
             if (element.name && element.name === 'a') {
                 if (element.attribs && element.attribs.href) {
                     const newProduct = {}
-                    newProduct['productUrl'] = baseUrl + element.attribs.href
+                    newProduct['config.scraperProductUrl'] = config.scraperBaseUrl + element.attribs.href
                     newProduct['soldOut'] = soldOut
                     for (data of element.children) {
                         if (data.type && data.type === 'tag') {
@@ -152,21 +148,21 @@ function getSavedProductList(db, queryCallback) {
 
 function insertProducts(db, products) {
     console.log('Products to be inserted', products)
-    db.collection(dbCollection).insertMany(products, function (err, res) {
+    db.collection(config.db.productCollection).insertMany(products, function (err, res) {
         if (err) throw err;
         console.log('inserted ' + products.length + ' products');
     });
 }
 
 function wipeTable(db, wipeTableCallback) {
-    db.collection(dbCollection).remove({}, function (err, resultObj) {
+    db.collection(config.db.productCollection).remove({}, function (err, resultObj) {
         if (err) throw err;
         console.log('deleted ' + resultObj.result.n + ' products');
         wipeTableCallback()
     });
 }
 
-function sendGCM () {
+function sendGCM() {
 
 }
 
