@@ -8,7 +8,8 @@
     "express": "latest",
     "request": "latest",
     "cheerio": "latest",
-    "mongodb": "latest"
+    "mongodb": "latest",
+    "node-gcm": "latest"
   },
   "devDependencies": {
     "eslint-config-google": "^0.9.1"
