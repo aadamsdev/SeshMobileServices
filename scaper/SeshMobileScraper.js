@@ -37,10 +37,10 @@ MongoClient.connect(config.db.uri, function (err, db) {
             } else {
                 console.log('No product updates found')
             }
+            
         }
 
         getSavedProductList(db, savedProductsCallback)
-        db.close()
         return 
     }
     const scrapedProducts = scrapeProducts(scrapeSuccessCallback);
@@ -74,7 +74,7 @@ function scrapeProducts(scrapeSuccessCallback) {
                     }
                 }
             }
-            console.log(parsedProducts)
+            // console.log(parsedProducts)
             scrapeSuccessCallback(parsedProducts)
         })
     })
@@ -86,7 +86,7 @@ function parseProducts(product, soldOut) {
             if (element.name && element.name === 'a') {
                 if (element.attribs && element.attribs.href) {
                     const newProduct = {}
-                    newProduct['config.scraperProductUrl'] = config.scraperBaseUrl + element.attribs.href
+                    newProduct['productUrl'] = config.scraperBaseUrl + element.attribs.href
                     newProduct['soldOut'] = soldOut
                     for (data of element.children) {
                         if (data.type && data.type === 'tag') {
@@ -156,7 +156,7 @@ function insertProducts(db, products) {
 }
 
 function wipeTable(db, wipeTableCallback) {
-    db.collection(config.db.productCollection).remove({}, function (err, resultObj) {
+    db.collection('products').remove({}, function (err, resultObj) {
         if (err) throw err;
         console.log('deleted ' + resultObj.result.n + ' products');
         wipeTableCallback()

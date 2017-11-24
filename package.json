@@ -10,7 +10,7 @@
     "cheerio": "latest",
     "mongodb": "latest",
     "node-gcm": "latest",
-    "restify" : "latest",
+    "restify" : "latest"
   },
   "devDependencies": {
     "eslint-config-google": "^0.9.1"
