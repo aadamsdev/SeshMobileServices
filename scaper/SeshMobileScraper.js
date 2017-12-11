@@ -25,12 +25,12 @@ MongoClient.connect(config.db.uri, function (err, db) {
 
             if (updateCollection) {
                 const wipeTableCallback = () => {
-                    const newProducts = []
-                    for (const key of Array.from(comparisonMap.keys())) {
-                        if (comparisonMap.get(key)) {
-                            newProducts.push(key)
-                        }
-                    }
+                    const newProducts = Array.from(comparisonMap.keys())
+                    // for (const key of Array.from(comparisonMap.keys())) {
+                    //     if (comparisonMap.get(key)) {
+                    //         newProducts.push(key)
+                    //     }
+                    // }
                     insertProducts(db, newProducts)
                 }
                 wipeTable(db, wipeTableCallback)
@@ -96,11 +96,9 @@ function parseProducts(product, soldOut) {
                                         newProduct['imageUrl'] = data.attribs.src
                                     }
                                 } else if (data.name === 'b') {
-
                                     if (data.children && data.children.length >= 1 && data.children[0].data) {
                                         newProduct['productName'] = data.children[0].data
                                     }
-
                                 } else if (data.name === 'i') {
                                     if (data.children && data.children.length > 1 && data.children[1].data) {
                                         newProduct['price'] = parseFloat(data.children[1].data)
